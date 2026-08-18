@@ -1,0 +1,1 @@
+- [Supabase URI handling](supabase-connection.md) — Credentials with reserved URL characters may require in-memory normalization before PostgreSQL clients can parse the URI.

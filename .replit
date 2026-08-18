@@ -20,6 +20,10 @@ author = "agent"
 task = "workflow.run"
 args = "WSMP web"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "WSMP API"
+
 [[workflows.workflow]]
 name = "WSMP web"
 author = "agent"
@@ -31,6 +35,18 @@ outputType = "webview"
 task = "shell.exec"
 args = "PORT=22235 BASE_PATH=/ pnpm --filter @workspace/wsmp run dev"
 waitForPort = 22235
+
+[[workflows.workflow]]
+name = "WSMP API"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
+waitForPort = 8080
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [agent]
 stack = "PNPM_WORKSPACE"

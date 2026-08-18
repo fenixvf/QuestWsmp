@@ -1,14 +1,8 @@
 import { defineConfig } from "drizzle-kit";
 import path from "path";
+import { getDatabaseUrl } from "./src/connection-url";
 
-const databaseUrl =
-  process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error(
-    "SUPABASE_DATABASE_URL or DATABASE_URL must be set. Ensure the database is configured.",
-  );
-}
+const databaseUrl = getDatabaseUrl();
 
 export default defineConfig({
   schema: path.join(__dirname, "./src/schema/index.ts"),
