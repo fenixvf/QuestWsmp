@@ -1,6 +1,6 @@
-# [Project name]
+# WSMP
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Mini site do WSMP para acompanhar missões diárias, saúde e felicidade dos ovos, com painel administrativo local.
 
 ## Run & Operate
 
@@ -9,7 +9,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required secret: `SUPABASE_DATABASE_URL` — PostgreSQL connection string do Supabase (o projeto mantém `DATABASE_URL` como fallback)
 
 ## Stack
 
@@ -22,24 +22,29 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/wsmp` — frontend React/Vite e armazenamento local do quadro
+- `artifacts/api-server` — API Express e endpoint de saúde
+- `lib/db` — conexão PostgreSQL/Drizzle e schema
+- `lib/api-spec` — contrato OpenAPI; os pacotes `api-client-react` e `api-zod` são gerados a partir dele
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- O Supabase é usado como PostgreSQL externo via `SUPABASE_DATABASE_URL`; a integração REST do Supabase não é necessária para o fluxo atual.
+- O frontend usa `localStorage` para persistir as configurações do painel administrativo.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+O site apresenta missões diárias e uma coleção de ovos com indicadores de vida e alegria. O painel administrativo permite editar configurações, missões e ovos.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+Nenhuma preferência adicional registrada.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Para iniciar a API, `SUPABASE_DATABASE_URL` precisa estar configurado; o frontend pode ser executado separadamente.
+- Depois de alterar o contrato OpenAPI, rode o codegen antes de usar os tipos atualizados.
 
 ## Pointers
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Consulte a skill `pnpm-workspace` para a estrutura do monorepo, TypeScript e detalhes dos pacotes.
