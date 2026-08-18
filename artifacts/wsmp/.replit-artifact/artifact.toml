@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "WSMP"
+description = "Mini site do WSMP para acompanhar quests diárias, saúde e felicidade dos ovos, com painel administrativo para configurar o conteúdo do jogo."
+version = "1.0.0"
+id = "artifacts/wsmp"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22235
+
+[services.development]
+run = "pnpm --filter @workspace/wsmp run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/wsmp", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/wsmp/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22235"
+BASE_PATH = "/"
