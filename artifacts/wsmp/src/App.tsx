@@ -168,13 +168,53 @@ function Field({ label, value, onChange, multiline = false, placeholder, type = 
   return <label className="block text-sm font-bold text-foreground">{label}{multiline ? <textarea {...common} rows={3} /> : <input {...common} type={type} min={min} max={max} />}</label>;
 }
 
-function AdminShell({ settings, children, section, setSection }: { settings: SiteSettings; children: ReactNode; section: string; setSection: (s: string) => void }) {
+function AdminLogin({ onLoggedIn }: { onLoggedIn: () => void }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, password }),
+      });
+      if (!response.ok) throw new Error('Usuário ou senha inválidos.');
+      onLoggedIn();
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : 'Não foi possível entrar.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return <div className="grain flex min-h-[100dvh] items-center justify-center bg-background px-5 py-10">
+    <form onSubmit={submit} className="w-full max-w-md border-2 border-foreground bg-card p-6 shadow-[8px_8px_0_hsl(var(--foreground)/.14)] md:p-8">
+      <div className="mb-8"><p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-primary">Área protegida</p><h1 className="font-mono text-3xl font-bold">Entrar no admin</h1><p className="mt-2 text-sm text-muted-foreground">Acesse para editar missões e ovos.</p></div>
+      <div className="space-y-4">
+        <Field label="Usuário" value={username} onChange={setUsername} autoComplete="username" />
+        <Field label="Senha" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
+      </div>
+      {error && <p className="mt-4 border-2 border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-bold text-destructive" role="alert">{error}</p>}
+      <button type="submit" disabled={loading} className="press focus-ring mt-6 w-full pixel-border bg-primary py-3 font-bold text-primary-foreground disabled:cursor-wait disabled:opacity-60">{loading ? 'Entrando...' : 'Entrar'}</button>
+      <Link href="/" className="mt-5 block text-center text-sm font-bold text-muted-foreground hover:text-foreground">Voltar ao quadro público</Link>
+    </form>
+  </div>;
+}
+
+function AdminShell({ settings, children, section, setSection, onLogout }: { settings: SiteSettings; children: ReactNode; section: string; setSection: (s: string) => void; onLogout: () => void }) {
   const [open, setOpen] = useState(false);
   const items = [{ id: 'overview', label: 'Resumo', icon: <LayoutDashboard size={17} /> }, { id: 'settings', label: 'Configurações', icon: <Settings size={17} /> }, { id: 'quests', label: 'Missões', icon: <ClipboardList size={17} /> }, { id: 'eggs', label: 'Ovos', icon: <EggIcon size={17} /> }];
   return <div className="grain min-h-[100dvh] bg-background lg:flex">
     <aside className={`fixed inset-y-0 left-0 z-30 w-[274px] -translate-x-full bg-sidebar px-5 py-6 text-sidebar-foreground shadow-2xl transition-transform lg:static lg:translate-x-0 lg:shadow-none ${open ? 'translate-x-0' : ''}`}><div className="flex items-center justify-between"><Brand settings={settings} dark /><button className="focus-ring p-2 text-sidebar-foreground/70 lg:hidden" onClick={() => setOpen(false)} aria-label="Fechar menu" data-testid="button-close-menu"><X size={19} /></button></div><div className="mt-12"><p className="px-3 text-[10px] font-bold uppercase tracking-[.2em] text-sidebar-foreground/40">Gerenciar ninho</p><nav className="mt-3 space-y-1" aria-label="Menu administrativo">{items.map(item => <button key={item.id} onClick={() => { setSection(item.id); setOpen(false); }} className={`focus-ring flex w-full items-center gap-3 px-3 py-3 text-left text-sm font-bold transition ${section === item.id ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'}`} data-testid={`button-admin-${item.id}`}>{item.icon}{item.label}{section === item.id && <ChevronDown className="ml-auto -rotate-90" size={15} />}</button>)}</nav></div><div className="absolute bottom-6 left-5 right-5 border-2 border-sidebar-border bg-sidebar-accent p-4"><p className="text-xs font-bold text-sidebar-foreground">Painel WSMP</p><p className="mt-1 text-xs leading-relaxed text-sidebar-foreground/55">As mudanças aparecem no quadro na hora.</p><Link href="/" className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-secondary" data-testid="link-view-club">Ver quadro público <ExternalLink size={12} /></Link></div></aside>
     {open && <button className="fixed inset-0 z-20 bg-foreground/25 lg:hidden" onClick={() => setOpen(false)} aria-label="Fechar navegação" data-testid="button-overlay-menu" />}
-    <div className="min-w-0 flex-1"><header className="flex h-[76px] items-center justify-between border-b-2 border-border/70 bg-background/90 px-5 backdrop-blur md:px-9"><button onClick={() => setOpen(true)} className="focus-ring border-2 border-border bg-card p-2.5 lg:hidden" aria-label="Abrir menu" data-testid="button-open-menu"><Menu size={19} /></button><div className="hidden lg:block"><p className="text-xs font-bold uppercase tracking-[.17em] text-muted-foreground">Painel de controle</p><h1 className="font-mono text-xl font-bold">{items.find(item => item.id === section)?.label}</h1></div><div className="flex items-center gap-3"><span className="hidden text-xs font-bold text-muted-foreground sm:block">Salvo no navegador</span><div className="flex items-center gap-2 border-2 border-border bg-card px-2.5 py-1.5"><span className="flex h-7 w-7 items-center justify-center bg-secondary font-mono text-xs font-bold">WS</span><span className="pr-1 text-xs font-bold">Administrador</span></div></div></header><main className="mx-auto max-w-6xl p-5 md:p-9">{children}</main></div>
+    <div className="min-w-0 flex-1"><header className="flex h-[76px] items-center justify-between border-b-2 border-border/70 bg-background/90 px-5 backdrop-blur md:px-9"><button onClick={() => setOpen(true)} className="focus-ring border-2 border-border bg-card p-2.5 lg:hidden" aria-label="Abrir menu" data-testid="button-open-menu"><Menu size={19} /></button><div className="hidden lg:block"><p className="text-xs font-bold uppercase tracking-[.17em] text-muted-foreground">Painel de controle</p><h1 className="font-mono text-xl font-bold">{items.find(item => item.id === section)?.label}</h1></div><div className="flex items-center gap-3"><span className="hidden text-xs font-bold text-muted-foreground sm:block">Salvo no navegador</span><div className="flex items-center gap-2 border-2 border-border bg-card px-2.5 py-1.5"><span className="flex h-7 w-7 items-center justify-center bg-secondary font-mono text-xs font-bold">WS</span><span className="pr-1 text-xs font-bold">Administrador</span></div><button onClick={onLogout} className="focus-ring px-2 py-1 text-xs font-bold text-muted-foreground hover:text-foreground" data-testid="button-admin-logout">Sair</button></div></header><main className="mx-auto max-w-6xl p-5 md:p-9">{children}</main></div>
   </div>;
 }
 
@@ -224,20 +264,45 @@ function EggsPanel({ eggs, update, editing, setEditing, onSaved }: { eggs: Egg[]
   return <div className="animate-rise"><PanelHeading icon={<EggIcon size={15} />} eyebrow="Coleção" title="Ovos" text="Defina status, números e capacidade de corações." button={<button onClick={() => setEditing(blank)} className="press inline-flex items-center gap-2 pixel-border bg-primary px-4 py-3 text-sm font-bold text-primary-foreground" data-testid="button-add-egg"><Plus size={16} /> Novo ovo</button>} />{editing && <EggForm form={form} setForm={setForm} submit={submit} cancel={() => setEditing(null)} />}{eggs.length ? <div className="mt-5 grid gap-3">{eggs.map(egg => <div key={egg.id} className="card-lift flex flex-wrap items-center gap-4 border-2 border-card-border bg-card p-4 shadow-sm" data-testid={`admin-egg-${egg.id}`}><img src={egg.image || logoAsset} alt={`Imagem de ${egg.name}`} className="h-14 w-14 object-cover pixel-border-light" /><div className="min-w-[11rem] flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-bold">{egg.name}</h3><span className="border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">{egg.status}</span></div><div className="mt-2 flex flex-wrap items-center gap-2"><HeartSlots value={egg.health} maxHearts={egg.maxHearts} label={`Vida de ${egg.name}`} /><span className="font-mono text-xs text-muted-foreground">{egg.health}% vida · {egg.happiness}% alegria · {egg.maxHearts} corações</span></div></div><div className="flex gap-1"><button onClick={() => setEditing(egg)} className="focus-ring p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={`Editar ${egg.name}`} data-testid={`button-edit-egg-${egg.id}`}><Pencil size={16} /></button><button onClick={() => remove(egg.id)} className="focus-ring p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label={`Excluir ${egg.name}`} data-testid={`button-delete-egg-${egg.id}`}><Trash2 size={16} /></button></div></div>)}</div> : <div className="mt-5"><Empty title="Nenhum ovo" text="Adicione um ovo para começar a coleção." icon={<EggIcon size={26} />} /></div>}</div>;
 }
 
-function Admin({ store, update }: { store: Store; update: (next: Partial<Store>) => void }) {
+function Admin({ store, update, onLogout }: { store: Store; update: (next: Partial<Store>) => void; onLogout: () => void }) {
   const [section, setSection] = useState('overview');
   const [editingQuest, setEditingQuest] = useState<Quest | null>(null);
   const [editingEgg, setEditingEgg] = useState<Egg | null>(null);
   const [notice, setNotice] = useState('');
   const saveNotice = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(''), 2200); };
   const avg = store.eggs.length ? Math.round(store.eggs.reduce((sum, egg) => sum + egg.health, 0) / store.eggs.length) : 0;
-  return <AdminShell settings={store.settings} section={section} setSection={setSection}>
+  return <AdminShell settings={store.settings} section={section} setSection={setSection} onLogout={onLogout}>
     {notice && <div className="animate-pop fixed bottom-5 right-5 z-50 flex items-center gap-2 border-2 border-foreground bg-foreground px-4 py-3 text-sm font-bold text-card shadow-xl" role="status" data-testid="status-save-notice"><CheckCircle2 size={17} className="text-secondary" />{notice}</div>}
     {section === 'overview' && <Overview store={store} avg={avg} setSection={setSection} />}
     {section === 'settings' && <SettingsPanel settings={store.settings} update={update} onSaved={() => saveNotice('Configurações salvas')} />}
     {section === 'quests' && <QuestsPanel quests={store.quests} update={update} editing={editingQuest} setEditing={setEditingQuest} onSaved={saveNotice} />}
     {section === 'eggs' && <EggsPanel eggs={store.eggs} update={update} editing={editingEgg} setEditing={setEditingEgg} onSaved={saveNotice} />}
   </AdminShell>;
+}
+
+function ProtectedAdmin({ store, update }: { store: Store; update: (next: Partial<Store>) => void }) {
+  const [state, setState] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
+
+  useEffect(() => {
+    let mounted = true;
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(response => {
+        if (mounted) setState(response.ok ? 'authenticated' : 'unauthenticated');
+      })
+      .catch(() => {
+        if (mounted) setState('unauthenticated');
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  if (state === 'loading') return <div className="flex min-h-[100dvh] items-center justify-center bg-background text-sm font-bold text-muted-foreground">Verificando acesso...</div>;
+  if (state === 'unauthenticated') return <AdminLogin onLoggedIn={() => setState('authenticated')} />;
+
+  const logout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    setState('unauthenticated');
+  };
+  return <Admin store={store} update={update} onLogout={logout} />;
 }
 
 function App() {
@@ -248,7 +313,7 @@ function App() {
     if (!favicon) { favicon = document.createElement('link'); favicon.rel = 'icon'; document.head.appendChild(favicon); }
     favicon.href = store.settings.logoImage || logoAsset;
   }, [store.settings.siteName, store.settings.logoImage]);
-  return <WouterRouter><Switch><Route path="/"><Home store={store} update={update} /></Route><Route><Home store={store} update={update} /></Route></Switch></WouterRouter>;
+  return <WouterRouter><Switch><Route path="/admin"><ProtectedAdmin store={store} update={update} /></Route><Route path="/"><Home store={store} update={update} /></Route><Route><Home store={store} update={update} /></Route></Switch></WouterRouter>;
 }
 
 export default function AppWithBoundary() {
