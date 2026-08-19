@@ -106,6 +106,16 @@ router.post("/auth/logout", (_req, res) => {
   res.clearCookie(COOKIE_NAME, cookieOptions()).json({ authenticated: false });
 });
 
+export function requireAdmin(req: Parameters<IRouter["get"]>[1] extends never ? never : any, res: any, next: any) {
+  const { sessionSecret } = getAuthConfig();
+  const session = readSession(req.cookies?.[COOKIE_NAME], sessionSecret);
+  if (!session) {
+    res.status(401).json({ authenticated: false });
+    return;
+  }
+  next();
+}
+
 router.get("/auth/me", (req, res) => {
   const { sessionSecret } = getAuthConfig();
   const session = readSession(req.cookies?.[COOKIE_NAME], sessionSecret);

@@ -71,10 +71,38 @@ const readStore = (): Store => {
   return seed;
 };
 
+type StoreUpdate = (next: Partial<Store>, persist?: boolean) => void;
+
 function useStore() {
   const [store, setStore] = useState<Store>(readStore);
+  useEffect(() => {
+    let mounted = true;
+    fetch('/api/store', { credentials: 'include' })
+      .then(async response => {
+        if (!response.ok) return;
+        const remote = await response.json() as Store;
+        if (mounted && remote.settings && Array.isArray(remote.quests) && Array.isArray(remote.eggs)) {
+          setStore(remote);
+        }
+      })
+      .catch(() => undefined);
+    return () => { mounted = false; };
+  }, []);
   useEffect(() => { localStorage.setItem(STORAGE, JSON.stringify(store)); }, [store]);
-  const update = (next: Partial<Store>) => setStore(current => ({ ...current, ...next }));
+  const update: StoreUpdate = (next, persist = true) => {
+    setStore(current => {
+      const updated = { ...current, ...next };
+      if (persist) {
+        void fetch('/api/store', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(updated),
+        }).catch(() => undefined);
+      }
+      return updated;
+    });
+  };
   return { store, update };
 }
 
@@ -138,10 +166,10 @@ function QuestRow({ quest, onComplete }: { quest: Quest; onComplete: (id: string
   </div>;
 }
 
-function Home({ store, update }: { store: Store; update: (next: Partial<Store>) => void }) {
+function Home({ store, update }: { store: Store; update: StoreUpdate }) {
   const activeQuests = store.quests.filter(q => q.active);
   const completed = activeQuests.filter(q => q.completed).length;
-  const completeQuest = (id: string) => update({ quests: store.quests.map(q => q.id === id ? { ...q, completed: !q.completed } : q) });
+  const completeQuest = (id: string) => update({ quests: store.quests.map(q => q.id === id ? { ...q, completed: !q.completed } : q) }, false);
   return <div className="grain min-h-[100dvh] overflow-hidden bg-background">
     <PublicHeader settings={store.settings} />
      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-5 sm:py-10 md:px-8 md:py-14">
@@ -231,7 +259,7 @@ function PanelHeading({ icon, eyebrow, title, text, button }: { icon: ReactNode;
   return <div className="flex flex-wrap items-start justify-between gap-4 [&>button]:w-full [&>button]:justify-center sm:[&>button]:w-auto"><div><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-primary">{icon}{eyebrow}</p><h2 className="font-mono text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2><p className="mt-3 text-muted-foreground">{text}</p></div>{button}</div>;
 }
 
-function SettingsPanel({ settings, update, onSaved }: { settings: SiteSettings; update: (next: Partial<Store>) => void; onSaved: () => void }) {
+function SettingsPanel({ settings, update, onSaved }: { settings: SiteSettings; update: StoreUpdate; onSaved: () => void }) {
   const [form, setForm] = useState(settings);
   useEffect(() => setForm(settings), [settings]);
   const submit = (event: FormEvent) => { event.preventDefault(); update({ settings: form }); onSaved(); };
@@ -242,7 +270,7 @@ function QuestForm({ form, setForm, submit, cancel }: { form: Quest; setForm: (q
   return <form onSubmit={submit} className="mt-5 border-2 border-primary/35 bg-secondary/25 p-4 sm:p-5"><div className="mb-5 flex items-center justify-between"><h3 className="font-mono text-lg font-bold">{form.id ? 'Editar missão' : 'Nova missão'}</h3><button type="button" onClick={cancel} className="focus-ring p-1" aria-label="Cancelar edição"><X size={18} /></button></div><div className="grid gap-4 sm:grid-cols-2"><Field label="Título" value={form.title} onChange={value => setForm({ ...form, title: value })} /><Field label="Categoria" value={form.category} onChange={value => setForm({ ...form, category: value })} /><Field label="Descrição" value={form.description} onChange={value => setForm({ ...form, description: value })} /><Field label="Recompensa" value={form.reward} onChange={value => setForm({ ...form, reward: value })} /></div><label className="mt-4 flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={form.active} onChange={event => setForm({ ...form, active: event.target.checked })} /> Mostrar no quadro público</label><div className="mt-5 flex flex-col gap-2 sm:flex-row"><button type="submit" className="press pixel-border bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"><Save size={15} className="mr-2 inline" />Salvar missão</button><button type="button" onClick={cancel} className="border-2 border-border bg-card px-4 py-2.5 text-sm font-bold">Cancelar</button></div></form>;
 }
 
-function QuestsPanel({ quests, update, editing, setEditing, onSaved }: { quests: Quest[]; update: (next: Partial<Store>) => void; editing: Quest | null; setEditing: (q: Quest | null) => void; onSaved: (message: string) => void }) {
+function QuestsPanel({ quests, update, editing, setEditing, onSaved }: { quests: Quest[]; update: StoreUpdate; editing: Quest | null; setEditing: (q: Quest | null) => void; onSaved: (message: string) => void }) {
   const blank: Quest = { id: '', title: '', description: '', reward: '+10 carinho', category: 'Cuidado', completed: false, active: true };
   const [form, setForm] = useState<Quest>(blank);
   useEffect(() => setForm(editing || blank), [editing]);
@@ -255,7 +283,7 @@ function EggForm({ form, setForm, submit, cancel }: { form: Egg; setForm: (egg: 
   return <form onSubmit={submit} className="mt-5 border-2 border-primary/35 bg-secondary/25 p-4 sm:p-5"><div className="mb-5 flex items-center justify-between"><h3 className="font-mono text-lg font-bold">{form.id ? 'Editar ovo' : 'Novo ovo'}</h3><button type="button" onClick={cancel} className="focus-ring p-1" aria-label="Cancelar edição"><X size={18} /></button></div><div className="grid gap-4 sm:grid-cols-2"><Field label="Nome" value={form.name} onChange={value => setForm({ ...form, name: value })} /><Field label="Status" value={form.status} onChange={value => setForm({ ...form, status: value })} /><Field label="URL da imagem" value={form.image} onChange={value => setForm({ ...form, image: value })} placeholder="URL local ou hospedada" /><Field label="Nota" value={form.note} onChange={value => setForm({ ...form, note: value })} multiline /><Field label="Vida atual (0–100)" type="number" min={0} max={100} value={form.health} onChange={value => setForm({ ...form, health: clamp(Number(value) || 0, 0, 100) })} /><Field label="Alegria atual (0–100)" type="number" min={0} max={100} value={form.happiness} onChange={value => setForm({ ...form, happiness: clamp(Number(value) || 0, 0, 100) })} /><Field label="Máximo de corações (1–20)" type="number" min={1} max={20} value={form.maxHearts} onChange={value => setForm({ ...form, maxHearts: clamp(Number(value) || 1, 1, 20) })} /></div><div className="mt-5 flex flex-wrap items-center gap-4 border-2 border-border bg-card p-3"><img src={form.image || logoAsset} alt="Prévia do ovo" className="h-14 w-14 shrink-0 object-cover pixel-border-light" /><div className="min-w-0"><p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Prévia</p><HeartSlots value={form.health} maxHearts={form.maxHearts} label="Vida" /></div></div><div className="mt-5 flex flex-col gap-2 sm:flex-row"><button type="submit" className="press pixel-border bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"><Save size={15} className="mr-2 inline" />Salvar ovo</button><button type="button" onClick={cancel} className="border-2 border-border bg-card px-4 py-2.5 text-sm font-bold">Cancelar</button></div></form>;
 }
 
-function EggsPanel({ eggs, update, editing, setEditing, onSaved }: { eggs: Egg[]; update: (next: Partial<Store>) => void; editing: Egg | null; setEditing: (e: Egg | null) => void; onSaved: (message: string) => void }) {
+function EggsPanel({ eggs, update, editing, setEditing, onSaved }: { eggs: Egg[]; update: StoreUpdate; editing: Egg | null; setEditing: (e: Egg | null) => void; onSaved: (message: string) => void }) {
   const blank: Egg = { id: '', name: '', image: logoAsset, health: 80, happiness: 80, maxHearts: 10, status: 'Novo', note: '' };
   const [form, setForm] = useState<Egg>(blank);
   useEffect(() => setForm(editing || blank), [editing]);
@@ -264,7 +292,7 @@ function EggsPanel({ eggs, update, editing, setEditing, onSaved }: { eggs: Egg[]
   return <div className="animate-rise"><PanelHeading icon={<EggIcon size={15} />} eyebrow="Coleção" title="Ovos" text="Defina status, números e capacidade de corações." button={<button onClick={() => setEditing(blank)} className="press inline-flex items-center gap-2 pixel-border bg-primary px-4 py-3 text-sm font-bold text-primary-foreground" data-testid="button-add-egg"><Plus size={16} /> Novo ovo</button>} />{editing && <EggForm form={form} setForm={setForm} submit={submit} cancel={() => setEditing(null)} />}{eggs.length ? <div className="mt-5 grid gap-3">{eggs.map(egg => <div key={egg.id} className="card-lift flex flex-wrap items-center gap-3 border-2 border-card-border bg-card p-3 shadow-sm sm:gap-4 sm:p-4" data-testid={`admin-egg-${egg.id}`}><img src={egg.image || logoAsset} alt={`Imagem de ${egg.name}`} className="h-14 w-14 shrink-0 object-cover pixel-border-light" /><div className="min-w-[10rem] flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-bold">{egg.name}</h3><span className="border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">{egg.status}</span></div><div className="mt-2 flex flex-wrap items-center gap-2"><HeartSlots value={egg.health} maxHearts={egg.maxHearts} label={`Vida de ${egg.name}`} /><span className="font-mono text-xs text-muted-foreground">{egg.health}% vida · {egg.happiness}% alegria · {egg.maxHearts} corações</span></div></div><div className="flex gap-1"><button onClick={() => setEditing(egg)} className="focus-ring p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={`Editar ${egg.name}`} data-testid={`button-edit-egg-${egg.id}`}><Pencil size={16} /></button><button onClick={() => remove(egg.id)} className="focus-ring p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={`Excluir ${egg.name}`} data-testid={`button-delete-egg-${egg.id}`}><Trash2 size={16} /></button></div></div>)}</div> : <div className="mt-5"><Empty title="Nenhum ovo" text="Adicione um ovo para começar a coleção." icon={<EggIcon size={26} />} /></div>}</div>;
 }
 
-function Admin({ store, update, onLogout }: { store: Store; update: (next: Partial<Store>) => void; onLogout: () => void }) {
+function Admin({ store, update, onLogout }: { store: Store; update: StoreUpdate; onLogout: () => void }) {
   const [section, setSection] = useState('overview');
   const [editingQuest, setEditingQuest] = useState<Quest | null>(null);
   const [editingEgg, setEditingEgg] = useState<Egg | null>(null);
@@ -280,7 +308,7 @@ function Admin({ store, update, onLogout }: { store: Store; update: (next: Parti
   </AdminShell>;
 }
 
-function ProtectedAdmin({ store, update }: { store: Store; update: (next: Partial<Store>) => void }) {
+function ProtectedAdmin({ store, update }: { store: Store; update: StoreUpdate }) {
   const [state, setState] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
 
   useEffect(() => {
