@@ -5,17 +5,8 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
 
 export interface AdminLoginRequest {
   username: string;
   password: string;
 }
-
-export interface AuthStatus {
-  authenticated: boolean;
-  username?: string;
-}
-

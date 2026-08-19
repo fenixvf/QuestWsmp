@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Administrator authentication
 paths:
   /healthz:
     get:
@@ -24,6 +26,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/login:
+    post:
+      operationId: adminLogin
+      tags: [auth]
+      summary: Sign in as administrator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginRequest"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+        "401":
+          description: Invalid credentials
+  /auth/logout:
+    post:
+      operationId: adminLogout
+      tags: [auth]
+      summary: Sign out administrator
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+  /auth/me:
+    get:
+      operationId: currentAdmin
+      tags: [auth]
+      summary: Check the current administrator session
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+        "401":
+          description: Not authenticated
 components:
   schemas:
     HealthStatus:
@@ -33,4 +81,24 @@ components:
           type: string
       required:
         - status
+    AdminLoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+      required:
+        - username
+        - password
+    AuthStatus:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        username:
+          type: string
+      required:
+        - authenticated
 

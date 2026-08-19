@@ -22,8 +22,8 @@ Mini site do WSMP para acompanhar missões diárias, saúde e felicidade dos ovo
 
 ## Where things live
 
-- `artifacts/wsmp` — frontend React/Vite e armazenamento local do quadro
-- `artifacts/api-server` — API Express e endpoint de saúde
+- `artifacts/wsmp` — frontend React/Vite, quadro público e painel `/admin`
+- `artifacts/api-server` — API Express, endpoint de saúde e autenticação do administrador
 - `lib/db` — conexão PostgreSQL/Drizzle e schema
 - `lib/api-spec` — contrato OpenAPI; os pacotes `api-client-react` e `api-zod` são gerados a partir dele
 
@@ -31,6 +31,7 @@ Mini site do WSMP para acompanhar missões diárias, saúde e felicidade dos ovo
 
 - O Supabase é usado como PostgreSQL externo via `SUPABASE_DATABASE_URL`; a integração REST do Supabase não é necessária para o fluxo atual.
 - O frontend usa `localStorage` para persistir as configurações do painel administrativo.
+- O administrador usa `ADMIN_USERNAME`, `ADMIN_PASSWORD` e `SESSION_SECRET`; a sessão é um cookie HTTP-only assinado e expira em oito horas.
 
 ## Product
 
@@ -43,6 +44,7 @@ Nenhuma preferência adicional registrada.
 ## Gotchas
 
 - Para iniciar a API, `SUPABASE_DATABASE_URL` precisa estar configurado; o frontend pode ser executado separadamente.
+- A rota `/admin` exige login; credenciais não devem ser colocadas no código ou em mensagens.
 - Depois de alterar o contrato OpenAPI, rode o codegen antes de usar os tipos atualizados.
 
 ## Pointers

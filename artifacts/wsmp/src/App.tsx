@@ -163,8 +163,8 @@ function Empty({ title, text, icon }: { title: string; text: string; icon: React
   return <div className="flex flex-col items-center justify-center border-2 border-dashed border-card-border bg-card/60 px-6 py-14 text-center"><div className="mb-4 border-2 border-primary/20 bg-secondary/40 p-3 text-primary">{icon}</div><h3 className="font-mono text-lg font-bold">{title}</h3><p className="mt-1 max-w-sm text-sm text-muted-foreground">{text}</p></div>;
 }
 
-function Field({ label, value, onChange, multiline = false, placeholder, type = 'text', min, max }: { label: string; value: string | number; onChange: (value: string) => void; multiline?: boolean; placeholder?: string; type?: string; min?: number; max?: number }) {
-  const common = { value, onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(event.target.value), placeholder, className: 'focus-ring mt-2 w-full border-2 border-input bg-background px-3.5 py-3 text-sm outline-none transition placeholder:text-muted-foreground/55 focus:border-primary' };
+function Field({ label, value, onChange, multiline = false, placeholder, type = 'text', min, max, autoComplete }: { label: string; value: string | number; onChange: (value: string) => void; multiline?: boolean; placeholder?: string; type?: string; min?: number; max?: number; autoComplete?: string }) {
+  const common = { value, onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(event.target.value), placeholder, autoComplete, className: 'focus-ring mt-2 w-full border-2 border-input bg-background px-3.5 py-3 text-sm outline-none transition placeholder:text-muted-foreground/55 focus:border-primary' };
   return <label className="block text-sm font-bold text-foreground">{label}{multiline ? <textarea {...common} rows={3} /> : <input {...common} type={type} min={min} max={max} />}</label>;
 }
 
