@@ -131,10 +131,10 @@ function EggCard({ egg }: { egg: Egg }) {
 }
 
 function QuestRow({ quest, onComplete }: { quest: Quest; onComplete: (id: string) => void }) {
-  return <div className={`flex items-start gap-3 border-2 p-3 transition sm:items-center sm:gap-4 sm:p-4 ${quest.completed ? 'border-accent/30 bg-accent/[.08]' : 'border-card-border bg-card hover:border-primary/40'}`} data-testid={`row-quest-${quest.id}`}>
+  return <div className={`grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 border-2 p-3 transition sm:flex sm:items-center sm:gap-4 sm:p-4 ${quest.completed ? 'border-accent/30 bg-accent/[.08]' : 'border-card-border bg-card hover:border-primary/40'}`} data-testid={`row-quest-${quest.id}`}>
     <button aria-label={quest.completed ? 'Missão concluída' : `Concluir missão ${quest.title}`} onClick={() => onComplete(quest.id)} className={`press focus-ring flex h-9 w-9 shrink-0 items-center justify-center border-2 transition ${quest.completed ? 'border-accent bg-accent text-accent-foreground' : 'border-muted-foreground/40 bg-background text-transparent hover:border-primary'}`} data-testid={`button-complete-quest-${quest.id}`}><Check size={17} strokeWidth={3} /></button>
     <div className="min-w-0 flex-1"><div className="mb-1 flex flex-wrap items-center gap-2"><h3 className={`font-bold ${quest.completed ? 'text-muted-foreground line-through' : ''}`}>{quest.title}</h3><span className="border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-foreground/65">{quest.category}</span></div><p className="truncate text-sm text-muted-foreground">{quest.description}</p></div>
-     <span className={`ml-auto shrink-0 self-end font-mono text-xs font-bold sm:ml-0 sm:self-auto ${quest.completed ? 'text-accent' : 'text-primary'}`}>{quest.reward}</span>
+      <span className={`col-start-2 max-w-full truncate font-mono text-xs font-bold sm:ml-0 sm:self-auto ${quest.completed ? 'text-accent' : 'text-primary'}`}>{quest.reward}</span>
   </div>;
 }
 
@@ -147,7 +147,7 @@ function Home({ store, update }: { store: Store; update: (next: Partial<Store>) 
      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-5 sm:py-10 md:px-8 md:py-14">
       <section className="animate-rise">
          <div className="mb-8"><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-primary"><ClipboardList size={15} /> Missões diárias</p><h1 className="font-mono text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">O que fazer hoje</h1><p className="mt-3 max-w-xl text-muted-foreground">Marque as missões conforme você completar.</p></div>
-        <div className="grid gap-3">{activeQuests.map((quest, index) => <div key={quest.id} className="animate-rise" style={{ animationDelay: `${index * 70}ms` }}><QuestRow quest={quest} onComplete={completeQuest} /></div>)}</div>
+         <div className="grid min-w-0 gap-3">{activeQuests.map((quest, index) => <div key={quest.id} className="animate-rise min-w-0" style={{ animationDelay: `${index * 70}ms` }}><QuestRow quest={quest} onComplete={completeQuest} /></div>)}</div>
         {activeQuests.length === 0 && <Empty title="Nenhuma missão" text="As missões diárias aparecerão aqui." icon={<ClipboardList size={26} />} />}
         <div className="mt-4 text-right font-mono text-sm font-bold text-muted-foreground">{completed}/{activeQuests.length} concluídas</div>
       </section>
