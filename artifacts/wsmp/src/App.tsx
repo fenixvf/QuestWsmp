@@ -89,13 +89,9 @@ function Brand({ settings, dark = false }: { settings: SiteSettings; dark?: bool
 }
 
 function PublicHeader({ settings }: { settings: SiteSettings }) {
-  return <header className="mx-auto flex max-w-6xl items-center justify-between border-b-2 border-foreground/10 px-5 py-5 md:px-8">
+  return <header className="mx-auto flex max-w-4xl items-center justify-between border-b-2 border-foreground/10 px-5 py-5 md:px-8">
     <Brand settings={settings} />
-    <nav className="flex items-center gap-2" aria-label="Navegação principal">
-      <a href="#missoes" className="focus-ring hidden px-3 py-2 text-sm font-bold text-muted-foreground transition hover:text-foreground sm:block" data-testid="link-quests">Missões</a>
-      <a href="#colecao" className="focus-ring hidden px-3 py-2 text-sm font-bold text-muted-foreground transition hover:text-foreground sm:block" data-testid="link-collection">Coleção</a>
-      <Link href="/admin" className="press focus-ring inline-flex items-center gap-2 pixel-border-light bg-card px-3 py-2 text-sm font-bold transition hover:bg-secondary" data-testid="link-admin"><Settings size={15} /> <span className="hidden xs:inline">Administrador</span></Link>
-    </nav>
+    <span className="text-xs font-bold uppercase tracking-[.16em] text-muted-foreground">Hoje</span>
   </header>;
 }
 
@@ -120,20 +116,16 @@ function HeartMeter({ label, value, maxHearts, icon }: { label: string; value: n
   </div>;
 }
 
-function EggCard({ egg, onCheck }: { egg: Egg; onCheck: (egg: Egg) => void }) {
-  const [checked, setChecked] = useState(false);
-  const check = () => { onCheck(egg); setChecked(true); window.setTimeout(() => setChecked(false), 1300); };
-  return <article className="card-lift relative overflow-hidden pixel-border-light bg-card p-3" data-testid={`card-egg-${egg.id}`}>
+function EggCard({ egg }: { egg: Egg }) {
+  return <article className="card-lift overflow-hidden pixel-border-light bg-card p-3" data-testid={`card-egg-${egg.id}`}>
     <div className="relative flex h-48 items-center justify-center overflow-hidden border-2 border-foreground/15 bg-secondary/60 pixel-grid">
       <div className="absolute right-2 top-2 border-2 border-foreground/15 bg-card px-2 py-1 text-[10px] font-bold uppercase tracking-wider"><span className="mr-1.5 inline-block h-2 w-2 bg-accent" />{egg.status}</div>
       <div className="absolute bottom-2 h-4 w-28 bg-foreground/15" />
-      <img src={egg.image || logoAsset} alt={`Imagem do ovo ${egg.name}`} className={`animate-floaty relative h-36 w-36 object-cover pixel-border transition-transform ${checked ? 'scale-110' : ''}`} data-testid={`img-egg-${egg.id}`} />
-      {checked && <div className="absolute inset-0 flex items-center justify-center bg-card/55"><span className="animate-pop flex items-center gap-2 pixel-border bg-accent px-3 py-2 text-sm font-bold text-accent-foreground"><Check size={16} /> Presença registrada</span></div>}
+      <img src={egg.image || logoAsset} alt={`Imagem do ovo ${egg.name}`} className="animate-floaty relative h-36 w-36 object-cover pixel-border" data-testid={`img-egg-${egg.id}`} />
     </div>
     <div className="px-2 pb-2 pt-4">
-      <div className="mb-4 flex items-start justify-between gap-2"><div><h3 className="font-mono text-xl font-bold tracking-tight" data-testid={`text-egg-name-${egg.id}`}>{egg.name}</h3><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{egg.note}</p></div><div className="border-2 border-primary/20 bg-secondary/35 p-2 text-primary"><Heart size={16} fill="currentColor" /></div></div>
-      <div className="space-y-3"><HeartMeter label="Vida" value={egg.health} maxHearts={egg.maxHearts} icon={<Activity size={13} />} /><HeartMeter label="Alegria" value={egg.happiness} maxHearts={egg.maxHearts} icon={<Heart size={13} />} /></div>
-      <button onClick={check} className="press focus-ring mt-4 flex w-full items-center justify-center gap-2 pixel-border bg-foreground py-3 text-sm font-bold text-card transition hover:bg-primary" data-testid={`button-check-egg-${egg.id}`}><Sparkles size={15} /> Cuidar de {egg.name}</button>
+      <div className="mb-5 flex items-center justify-between gap-2"><h3 className="font-mono text-xl font-bold tracking-tight" data-testid={`text-egg-name-${egg.id}`}>{egg.name}</h3><Heart size={17} className="text-primary" fill="currentColor" /></div>
+      <div className="space-y-3"><HeartMeter label="Vida" value={egg.health} maxHearts={egg.maxHearts} icon={<Activity size={13} />} /><HeartMeter label="Felicidade" value={egg.happiness} maxHearts={egg.maxHearts} icon={<Heart size={13} />} /></div>
     </div>
   </article>;
 }
@@ -149,42 +141,21 @@ function QuestRow({ quest, onComplete }: { quest: Quest; onComplete: (id: string
 function Home({ store, update }: { store: Store; update: (next: Partial<Store>) => void }) {
   const activeQuests = store.quests.filter(q => q.active);
   const completed = activeQuests.filter(q => q.completed).length;
-  const checkEgg = (egg: Egg) => update({ eggs: store.eggs.map(item => item.id === egg.id ? { ...item, happiness: Math.min(100, item.happiness + 2), status: item.happiness < 90 ? 'Visto hoje' : item.status } : item) });
   const completeQuest = (id: string) => update({ quests: store.quests.map(q => q.id === id ? { ...q, completed: !q.completed } : q) });
-  const weekday = new Date().toLocaleDateString('pt-BR', { weekday: 'long' });
   return <div className="grain min-h-[100dvh] overflow-hidden bg-background">
     <PublicHeader settings={store.settings} />
-    <main>
-      <section className="relative mx-auto max-w-6xl px-5 pb-14 pt-10 md:px-8 md:pb-20 md:pt-16">
-        <div className="pointer-events-none absolute -right-20 -top-24 h-96 w-96 border-[32px] border-secondary/30" />
-        <div className="relative grid items-center gap-12 lg:grid-cols-[1.08fr_.92fr]">
-          <div className="animate-rise">
-            <div className="mb-6 inline-flex items-center gap-2 border-2 border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[.14em] text-primary"><Zap size={14} fill="currentColor" /> Quadro de hoje · {weekday}</div>
-            <h1 className="max-w-2xl font-mono text-[clamp(3rem,8vw,6.4rem)] font-bold leading-[.9] tracking-[-.08em]">Cuide do<br /><span className="text-primary">seu ninho.</span></h1>
-            <p className="mt-7 max-w-lg text-lg leading-relaxed text-muted-foreground">{store.settings.welcomeMessage}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-3"><a href="#colecao" className="press focus-ring inline-flex items-center gap-2 pixel-border bg-primary px-5 py-3.5 font-bold text-primary-foreground transition hover:-translate-y-0.5" data-testid="link-check-eggs">Ver os ovos <ArrowRight size={17} /></a><span className="flex items-center gap-2 px-2 text-sm font-bold text-muted-foreground"><Star size={16} className="text-primary" fill="currentColor" /> {store.eggs.length} {store.eggs.length === 1 ? 'ovo' : 'ovos'}</span></div>
-          </div>
-          <div className="relative mx-auto w-full max-w-md animate-rise [animation-delay:120ms]">
-            <div className="relative rotate-2 border-2 border-foreground bg-primary p-5 shadow-[10px_10px_0_hsl(var(--foreground)/.16)]">
-              <div className="border-2 border-foreground/20 bg-secondary p-5 pixel-grid"><img src={store.settings.logoImage || logoAsset} alt="Logo WSMP em destaque" className="mx-auto aspect-square w-full max-w-[20rem] object-cover" data-testid="img-hero-logo" /></div>
-              <div className="absolute -bottom-5 -left-5 border-2 border-foreground/15 bg-card px-4 py-3 shadow-lg"><p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Estado do ninho</p><p className="mt-1 font-mono font-bold text-accent">tranquilo</p></div>
-              <div className="absolute -right-3 top-8 border-2 border-foreground bg-accent p-3 text-accent-foreground"><Heart size={20} fill="currentColor" /></div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section id="missoes" className="mx-auto max-w-6xl scroll-mt-6 px-5 py-12 md:px-8 md:py-20">
-        <div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-primary"><ClipboardList size={15} /> Lista de missões</p><h2 className="font-mono text-3xl font-bold tracking-tight md:text-4xl">Pequenas tarefas</h2></div><div className="border-2 border-card-border bg-card px-4 py-3 text-right shadow-sm"><p className="font-mono text-xl font-bold text-accent">{completed}<span className="text-muted-foreground">/{activeQuests.length}</span></p><p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">concluídas</p></div></div>
+    <main className="mx-auto max-w-4xl px-5 py-10 md:px-8 md:py-14">
+      <section className="animate-rise">
+        <div className="mb-8"><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-primary"><ClipboardList size={15} /> Missões diárias</p><h1 className="font-mono text-4xl font-bold tracking-tight md:text-5xl">O que fazer hoje</h1><p className="mt-3 max-w-xl text-muted-foreground">Marque as missões conforme você completar.</p></div>
         <div className="grid gap-3">{activeQuests.map((quest, index) => <div key={quest.id} className="animate-rise" style={{ animationDelay: `${index * 70}ms` }}><QuestRow quest={quest} onComplete={completeQuest} /></div>)}</div>
-        {activeQuests.length === 0 && <Empty title="Quadro vazio" text="Novas missões aparecerão aqui." icon={<ClipboardList size={26} />} />}
+        {activeQuests.length === 0 && <Empty title="Nenhuma missão" text="As missões diárias aparecerão aqui." icon={<ClipboardList size={26} />} />}
+        <div className="mt-4 text-right font-mono text-sm font-bold text-muted-foreground">{completed}/{activeQuests.length} concluídas</div>
       </section>
-      <section id="colecao" className="scroll-mt-5 border-y-2 border-foreground/10 bg-secondary/20 py-14 md:py-24">
-        <div className="mx-auto max-w-6xl px-5 md:px-8"><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-accent"><EggIcon size={15} /> Coleção</p><h2 className="font-mono text-3xl font-bold tracking-tight md:text-4xl">Como eles estão?</h2><p className="mt-2 text-muted-foreground">Um toque aumenta a alegria.</p></div><div className="hidden items-center gap-2 border-2 border-accent/25 bg-card/80 px-3 py-2 text-xs font-bold text-accent sm:flex"><span className="h-2 w-2 animate-pulse bg-accent" /> Ninho em ordem</div></div>
-          {store.eggs.length ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{store.eggs.map((egg, index) => <div key={egg.id} className="animate-rise" style={{ animationDelay: `${index * 80}ms` }}><EggCard egg={egg} onCheck={checkEgg} /></div>)}</div> : <Empty title="O ninho está vazio" text="Adicione um ovo no painel admin." icon={<EggIcon size={26} />} />}
-        </div>
+      <section id="colecao" className="mt-16 border-t-2 border-foreground/10 pt-12">
+        <div className="mb-8"><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-accent"><EggIcon size={15} /> Status dos ovos</p><h2 className="font-mono text-3xl font-bold tracking-tight md:text-4xl">Como eles estão?</h2></div>
+        {store.eggs.length ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{store.eggs.map((egg, index) => <div key={egg.id} className="animate-rise" style={{ animationDelay: `${index * 80}ms` }}><EggCard egg={egg} /></div>)}</div> : <Empty title="Nenhum ovo" text="A coleção está vazia." icon={<EggIcon size={26} />} />}
       </section>
     </main>
-    <footer className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-5 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center md:px-8"><Brand settings={store.settings} /><p>{store.settings.tagline} · feito para visitas diárias.</p></footer>
   </div>;
 }
 
@@ -277,7 +248,7 @@ function App() {
     if (!favicon) { favicon = document.createElement('link'); favicon.rel = 'icon'; document.head.appendChild(favicon); }
     favicon.href = store.settings.logoImage || logoAsset;
   }, [store.settings.siteName, store.settings.logoImage]);
-  return <WouterRouter><Switch><Route path="/admin"><Admin store={store} update={update} /></Route><Route path="/"><Home store={store} update={update} /></Route><Route><Home store={store} update={update} /></Route></Switch></WouterRouter>;
+  return <WouterRouter><Switch><Route path="/"><Home store={store} update={update} /></Route><Route><Home store={store} update={update} /></Route></Switch></WouterRouter>;
 }
 
 export default function AppWithBoundary() {
