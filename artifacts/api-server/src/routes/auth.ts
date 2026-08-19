@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type NextFunction, type Request, type Response } from "express";
 
 const router: IRouter = Router();
 const COOKIE_NAME = "wsmp_admin_session";
@@ -106,7 +106,7 @@ router.post("/auth/logout", (_req, res) => {
   res.clearCookie(COOKIE_NAME, cookieOptions()).json({ authenticated: false });
 });
 
-export function requireAdmin(req: Parameters<IRouter["get"]>[1] extends never ? never : any, res: any, next: any) {
+export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const { sessionSecret } = getAuthConfig();
   const session = readSession(req.cookies?.[COOKIE_NAME], sessionSecret);
   if (!session) {

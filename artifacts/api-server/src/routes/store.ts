@@ -12,7 +12,13 @@ type StorePayload = {
   eggs: unknown;
 };
 
-async function supabase(path: string, init: RequestInit = {}) {
+type ProxyInit = {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+};
+
+async function supabase(path: string, init: ProxyInit = {}) {
   return connectors.proxy("supabase", path, init);
 }
 
