@@ -19,6 +19,17 @@ type ProxyInit = {
 };
 
 async function supabase(path: string, init: ProxyInit = {}) {
+  const projectUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (projectUrl && serviceRoleKey) {
+    const headers = new Headers(init.headers);
+    headers.set("apikey", serviceRoleKey);
+    headers.set("Authorization", `Bearer ${serviceRoleKey}`);
+    return fetch(`${projectUrl.replace(/\/$/, "")}${path}`, {
+      ...init,
+      headers,
+    });
+  }
   return connectors.proxy("supabase", path, init);
 }
 
