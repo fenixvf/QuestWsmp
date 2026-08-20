@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { ReplitConnectors } from "@replit/connectors-sdk";
 import { requireAdmin } from "./auth.js";
-import type { Request, Response } from "express-serve-static-core";
+import type { Request, Response as ExpressResponse } from "express-serve-static-core";
 
 const router = Router();
 const STORE_ID = "default";
@@ -45,7 +45,7 @@ function isStorePayload(value: unknown): value is StorePayload {
   );
 }
 
-router.get("/store", async (_req: Request, res: Response) => {
+router.get("/store", async (_req: Request, res: ExpressResponse) => {
   try {
     const response = await supabase(
       `/rest/v1/wsmp_store?id=eq.${STORE_ID}&select=settings,quests,eggs,updated_at`,
@@ -70,7 +70,7 @@ router.get("/store", async (_req: Request, res: Response) => {
 router.put(
   "/store",
   requireAdmin,
-  async (req: Request, res: Response) => {
+  async (req: Request, res: ExpressResponse) => {
   if (!isStorePayload(req.body)) {
     res.status(400).json({ message: "Dados inválidos para o quadro." });
     return;
