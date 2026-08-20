@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { ReplitConnectors } from "@replit/connectors-sdk";
 import { requireAdmin } from "./auth.js";
-import type { Request, Response } from "express";
+import type { Request, Response } from "express-serve-static-core";
 
 const router = Router();
 const STORE_ID = "default";

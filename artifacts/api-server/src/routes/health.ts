@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { HealthCheckResponse } from "@workspace/api-zod";
-import type { Request, Response } from "express";
+import type { Request, Response } from "express-serve-static-core";
 
 const router = Router();
 

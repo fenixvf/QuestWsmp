@@ -1,6 +1,10 @@
 import crypto from "node:crypto";
 import { Router } from "express";
-import type { NextFunction, Request, Response } from "express";
+import type {
+  NextFunction,
+  Request,
+  Response,
+} from "express-serve-static-core";
 
 const router = Router();
 const COOKIE_NAME = "wsmp_admin_session";
