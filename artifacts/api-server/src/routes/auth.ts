@@ -20,7 +20,7 @@ function timingSafeEqual(left: string, right: string): boolean {
 }
 
 function getAuthConfig() {
-  const username = process.env.ADMIN_USERNAME;
+  const username = process.env.ADMIN_USERNAME?.trim();
   const password = process.env.ADMIN_PASSWORD;
   const sessionSecret = process.env.SESSION_SECRET;
 
@@ -31,6 +31,12 @@ function getAuthConfig() {
   }
 
   return { username, password, sessionSecret };
+}
+
+function sendAuthConfigError(res: Response): void {
+  res.status(503).json({
+    message: "A autenticação do administrador não está configurada no servidor.",
+  });
 }
 
 function createSession(username: string, sessionSecret: string): string {
@@ -85,9 +91,17 @@ function cookieOptions() {
 }
 
 router.post("/auth/login", (req: Request, res: Response) => {
-  const { username, password, sessionSecret } = getAuthConfig();
+  let config: ReturnType<typeof getAuthConfig>;
+  try {
+    config = getAuthConfig();
+  } catch {
+    sendAuthConfigError(res);
+    return;
+  }
+
+  const { username, password, sessionSecret } = config;
   const inputUsername =
-    typeof req.body?.username === "string" ? req.body.username : "";
+    typeof req.body?.username === "string" ? req.body.username.trim() : "";
   const inputPassword =
     typeof req.body?.password === "string" ? req.body.password : "";
 
@@ -112,7 +126,15 @@ router.post("/auth/logout", (_req: Request, res: Response) => {
 });
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  const { sessionSecret } = getAuthConfig();
+  let config: ReturnType<typeof getAuthConfig>;
+  try {
+    config = getAuthConfig();
+  } catch {
+    sendAuthConfigError(res);
+    return;
+  }
+
+  const { sessionSecret } = config;
   const session = readSession(req.cookies?.[COOKIE_NAME], sessionSecret);
   if (!session) {
     res.status(401).json({ authenticated: false });
@@ -122,7 +144,15 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 }
 
 router.get("/auth/me", (req: Request, res: Response) => {
-  const { sessionSecret } = getAuthConfig();
+  let config: ReturnType<typeof getAuthConfig>;
+  try {
+    config = getAuthConfig();
+  } catch {
+    sendAuthConfigError(res);
+    return;
+  }
+
+  const { sessionSecret } = config;
   const session = readSession(req.cookies?.[COOKIE_NAME], sessionSecret);
   if (!session) {
     res.status(401).json({ authenticated: false });

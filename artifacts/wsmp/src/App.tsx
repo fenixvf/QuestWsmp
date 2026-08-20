@@ -213,7 +213,13 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: () => void }) {
         credentials: 'include',
         body: JSON.stringify({ username, password }),
       });
-      if (!response.ok) throw new Error('Usuário ou senha inválidos.');
+      const result = await response.json().catch(() => null) as { message?: string } | null;
+      if (!response.ok) {
+        throw new Error(
+          result?.message ||
+          (response.status === 401 ? 'Usuário ou senha inválidos.' : 'Não foi possível concluir o login.'),
+        );
+      }
       onLoggedIn();
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : 'Não foi possível entrar.');
