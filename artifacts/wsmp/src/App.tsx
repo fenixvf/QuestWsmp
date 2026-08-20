@@ -217,7 +217,13 @@ function AdminLogin({ onLoggedIn }: { onLoggedIn: () => void }) {
       if (!response.ok) {
         throw new Error(
           result?.message ||
-          (response.status === 401 ? 'Usuário ou senha inválidos.' : 'Não foi possível concluir o login.'),
+          (response.status === 401
+            ? 'Usuário ou senha inválidos.'
+            : response.status === 404
+              ? 'A rota de autenticação não foi encontrada no servidor.'
+              : response.status >= 500
+                ? 'O servidor de autenticação está indisponível.'
+                : 'Não foi possível concluir o login.'),
         );
       }
       onLoggedIn();
