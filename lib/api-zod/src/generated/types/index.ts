@@ -6,6 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './adminLoginRequest';
-export * from './authStatus';
-export * from './healthStatus';
+export * from './adminLoginRequest.js';
+export * from './authStatus.js';
+export * from './healthStatus.js';
