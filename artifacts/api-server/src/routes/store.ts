@@ -34,10 +34,10 @@ async function supabase(
     const headers = new Headers(init.headers);
     headers.set("apikey", serviceRoleKey);
     headers.set("Authorization", `Bearer ${serviceRoleKey}`);
-    return fetch(`${projectUrl.replace(/\/$/, "")}${path}`, {
+    return (await fetch(`${projectUrl.replace(/\/$/, "")}${path}`, {
       ...init,
       headers,
-    });
+    })) as unknown as SupabaseResponse;
   }
   return connectors.proxy("supabase", path, init) as Promise<SupabaseResponse>;
 }
