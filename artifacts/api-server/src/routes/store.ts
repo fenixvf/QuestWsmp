@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { ReplitConnectors } from "@replit/connectors-sdk";
-import { requireAdmin } from "./auth";
+import { requireAdmin } from "./auth.js";
 
 const router: IRouter = Router();
 const STORE_ID = "default";
