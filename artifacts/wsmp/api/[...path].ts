@@ -1,6 +1,13 @@
-import app from "../../api-server/src/app";
+let appPromise: Promise<any> | undefined;
 
-export default function handler(req: any, res: any) {
+function loadApp(): Promise<any> {
+  appPromise ??= import("../../api-server/src/app.js").then(
+    (module) => module.default,
+  );
+  return appPromise;
+}
+
+export default async function handler(req: any, res: any) {
   if (req.url && !req.url.startsWith("/api")) {
     const pathParam = req.query?.path;
     if (pathParam) {
@@ -16,5 +23,6 @@ export default function handler(req: any, res: any) {
     }
   }
 
-  return (app as unknown as (request: any, response: any) => unknown)(req, res);
+  const app = await loadApp();
+  return app(req, res);
 }

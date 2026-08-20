@@ -1,6 +1,13 @@
-import app from "../artifacts/api-server/src/app";
+let appPromise: Promise<any> | undefined;
 
-export default function handler(req: any, res: any) {
+function loadApp(): Promise<any> {
+  appPromise ??= import("../artifacts/api-server/src/app.js").then(
+    (module) => module.default,
+  );
+  return appPromise;
+}
+
+export default async function handler(req: any, res: any) {
   // Replit mounts the Express router at /api, while Vercel invokes this
   // catch-all function with the /api prefix removed.
   if (req.url && !req.url.startsWith("/api")) {
@@ -18,5 +25,6 @@ export default function handler(req: any, res: any) {
     }
   }
 
-  return (app as unknown as (request: any, response: any) => unknown)(req, res);
+  const app = await loadApp();
+  return app(req, res);
 }
