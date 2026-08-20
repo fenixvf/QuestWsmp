@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
-import { Router, type IRouter, type NextFunction, type Request, type Response } from "express";
+import { Router, type NextFunction, type Request, type Response } from "express";
 
-const router: IRouter = Router();
+const router = Router();
 const COOKIE_NAME = "wsmp_admin_session";
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
 
