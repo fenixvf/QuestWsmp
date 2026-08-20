@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ReplitConnectors } from "@replit/connectors-sdk";
 import { requireAdmin } from "./auth.js";
+import type { Request, Response } from "express";
 
 const router = Router();
 const STORE_ID = "default";
@@ -44,7 +45,7 @@ function isStorePayload(value: unknown): value is StorePayload {
   );
 }
 
-router.get("/store", async (_req, res) => {
+router.get("/store", async (_req: Request, res: Response) => {
   try {
     const response = await supabase(
       `/rest/v1/wsmp_store?id=eq.${STORE_ID}&select=settings,quests,eggs,updated_at`,
@@ -66,7 +67,10 @@ router.get("/store", async (_req, res) => {
   }
 });
 
-router.put("/store", requireAdmin, async (req, res) => {
+router.put(
+  "/store",
+  requireAdmin,
+  async (req: Request, res: Response) => {
   if (!isStorePayload(req.body)) {
     res.status(400).json({ message: "Dados inválidos para o quadro." });
     return;
@@ -98,6 +102,7 @@ router.put("/store", requireAdmin, async (req, res) => {
   } catch {
     res.status(502).json({ message: "Não foi possível conectar ao Supabase." });
   }
-});
+  },
+);
 
 export default router;

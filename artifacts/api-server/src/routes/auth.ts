@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
-import { Router, type NextFunction, type Request, type Response } from "express";
+import { Router } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 const router = Router();
 const COOKIE_NAME = "wsmp_admin_session";
@@ -79,7 +80,7 @@ function cookieOptions() {
   };
 }
 
-router.post("/auth/login", (req, res) => {
+router.post("/auth/login", (req: Request, res: Response) => {
   const { username, password, sessionSecret } = getAuthConfig();
   const inputUsername =
     typeof req.body?.username === "string" ? req.body.username : "";
@@ -102,7 +103,7 @@ router.post("/auth/login", (req, res) => {
     .json({ authenticated: true, username });
 });
 
-router.post("/auth/logout", (_req, res) => {
+router.post("/auth/logout", (_req: Request, res: Response) => {
   res.clearCookie(COOKIE_NAME, cookieOptions()).json({ authenticated: false });
 });
 
@@ -116,7 +117,7 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-router.get("/auth/me", (req, res) => {
+router.get("/auth/me", (req: Request, res: Response) => {
   const { sessionSecret } = getAuthConfig();
   const session = readSession(req.cookies?.[COOKIE_NAME], sessionSecret);
   if (!session) {
