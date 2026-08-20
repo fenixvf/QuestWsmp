@@ -19,7 +19,15 @@ type ProxyInit = {
   body?: string;
 };
 
-async function supabase(path: string, init: ProxyInit = {}) {
+type SupabaseResponse = {
+  ok: boolean;
+  json(): Promise<unknown>;
+};
+
+async function supabase(
+  path: string,
+  init: ProxyInit = {},
+): Promise<SupabaseResponse> {
   const projectUrl = process.env.SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (projectUrl && serviceRoleKey) {
@@ -31,7 +39,7 @@ async function supabase(path: string, init: ProxyInit = {}) {
       headers,
     });
   }
-  return connectors.proxy("supabase", path, init);
+  return connectors.proxy("supabase", path, init) as Promise<SupabaseResponse>;
 }
 
 function isStorePayload(value: unknown): value is StorePayload {
