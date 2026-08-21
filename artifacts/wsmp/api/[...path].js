@@ -1,13 +1,13 @@
-let appPromise: Promise<any> | undefined;
+let appPromise;
 
-function loadApp(): Promise<any> {
+function loadApp() {
   appPromise ??= import("../../api-server/src/app.js").then(
     (module) => module.default,
   );
   return appPromise;
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req, res) {
   if (req.url && !req.url.startsWith("/api")) {
     const pathParam = req.query?.path;
     if (pathParam) {
