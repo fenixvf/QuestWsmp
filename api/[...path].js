@@ -1,4 +1,4 @@
-import app from "../artifacts/api-server/src/app.ts";
+import app from "../artifacts/wsmp/api/app.mjs";
 
 export default async function handler(req, res) {
   // Replit mounts the Express router at /api, while Vercel invokes this

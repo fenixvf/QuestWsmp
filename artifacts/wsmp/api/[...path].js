@@ -1,4 +1,4 @@
-import app from "../../api-server/src/app.ts";
+import app from "./app.mjs";
 
 export default async function handler(req, res) {
   if (req.url && !req.url.startsWith("/api")) {
