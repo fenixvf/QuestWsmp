@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import { Link, Route, Switch, Router as WouterRouter } from 'wouter';
-import { Activity, ArrowRight, Check, CheckCircle2, ChevronDown, ClipboardList, Egg as EggIcon, ExternalLink, Heart, LayoutDashboard, Menu, Pencil, Plus, Save, Settings, Sparkles, Star, Trash2, Trophy, X, Zap } from 'lucide-react';
+import { Activity, ArrowRight, CheckCircle2, ChevronDown, ClipboardList, Egg as EggIcon, ExternalLink, Heart, LayoutDashboard, Menu, Pencil, Plus, Save, Settings, Sparkles, Star, Trash2, Trophy, X, Zap } from 'lucide-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import logoAsset from '@assets/watermarked_img_10663692129455435167_(1)_1787017059477.jpg';
 
@@ -158,31 +158,27 @@ function EggCard({ egg }: { egg: Egg }) {
   </article>;
 }
 
-function QuestRow({ quest, onComplete }: { quest: Quest; onComplete: (id: string) => void }) {
-  return <div className={`grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-3 border-2 p-3 transition sm:flex sm:items-center sm:gap-4 sm:p-4 ${quest.completed ? 'border-accent/30 bg-accent/[.08]' : 'border-card-border bg-card hover:border-primary/40'}`} data-testid={`row-quest-${quest.id}`}>
-    <button aria-label={quest.completed ? 'Missão concluída' : `Concluir missão ${quest.title}`} onClick={() => onComplete(quest.id)} className={`press focus-ring flex h-9 w-9 shrink-0 items-center justify-center border-2 transition ${quest.completed ? 'border-accent bg-accent text-accent-foreground' : 'border-muted-foreground/40 bg-background text-transparent hover:border-primary'}`} data-testid={`button-complete-quest-${quest.id}`}><Check size={17} strokeWidth={3} /></button>
-    <div className="min-w-0 flex-1"><div className="mb-1 flex flex-wrap items-center gap-2"><h3 className={`font-bold ${quest.completed ? 'text-muted-foreground line-through' : ''}`}>{quest.title}</h3><span className="border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-foreground/65">{quest.category}</span></div><p className="truncate text-sm text-muted-foreground">{quest.description}</p></div>
-      <span className={`col-start-2 max-w-full truncate font-mono text-xs font-bold sm:ml-0 sm:self-auto ${quest.completed ? 'text-accent' : 'text-primary'}`}>{quest.reward}</span>
+function QuestRow({ quest }: { quest: Quest }) {
+  return <div className="grid min-w-0 gap-3 border-2 border-card-border bg-card p-3 transition hover:border-primary/40 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-4 sm:p-4" data-testid={`row-quest-${quest.id}`}>
+    <div className="min-w-0"><div className="mb-1 flex flex-wrap items-center gap-2"><h3 className="font-bold">{quest.title}</h3><span className="border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-foreground/65">{quest.category}</span></div><p className="break-words text-sm leading-relaxed text-muted-foreground">{quest.description}</p></div>
+      <span className="max-w-full break-words font-mono text-xs font-bold text-primary sm:text-right">{quest.reward}</span>
   </div>;
 }
 
-function Home({ store, update }: { store: Store; update: StoreUpdate }) {
+function Home({ store }: { store: Store }) {
   const activeQuests = store.quests.filter(q => q.active);
-  const completed = activeQuests.filter(q => q.completed).length;
-  const completeQuest = (id: string) => update({ quests: store.quests.map(q => q.id === id ? { ...q, completed: !q.completed } : q) }, false);
   return <div className="grain min-h-[100dvh] overflow-hidden bg-background">
     <PublicHeader settings={store.settings} />
      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-5 sm:py-10 md:px-8 md:py-14">
-      <section className="animate-rise">
-         <div className="mb-8"><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-primary"><ClipboardList size={15} /> Missões diárias</p><h1 className="font-mono text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">O que fazer hoje</h1><p className="mt-3 max-w-xl text-muted-foreground">Marque as missões conforme você completar.</p></div>
-         <div className="grid min-w-0 gap-3">{activeQuests.map((quest, index) => <div key={quest.id} className="animate-rise min-w-0" style={{ animationDelay: `${index * 70}ms` }}><QuestRow quest={quest} onComplete={completeQuest} /></div>)}</div>
+       <section className="animate-rise">
+          <div className="mb-8"><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-primary"><ClipboardList size={15} /> Missões diárias</p><h1 className="font-mono text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">O que fazer hoje</h1><p className="mt-3 max-w-xl text-muted-foreground">Escolha uma missão para o seu dia.</p></div>
+          <div className="grid min-w-0 gap-3">{activeQuests.map((quest, index) => <div key={quest.id} className="animate-rise min-w-0" style={{ animationDelay: `${index * 70}ms` }}><QuestRow quest={quest} /></div>)}</div>
         {activeQuests.length === 0 && <Empty title="Nenhuma missão" text="As missões diárias aparecerão aqui." icon={<ClipboardList size={26} />} />}
-        <div className="mt-4 text-right font-mono text-sm font-bold text-muted-foreground">{completed}/{activeQuests.length} concluídas</div>
-      </section>
-      <section id="colecao" className="mt-16 border-t-2 border-foreground/10 pt-12">
+       <div id="colecao" className="mt-16 border-t-2 border-foreground/10 pt-12">
         <div className="mb-8"><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-accent"><EggIcon size={15} /> Status dos ovos</p><h2 className="font-mono text-3xl font-bold tracking-tight md:text-4xl">Como eles estão?</h2></div>
         {store.eggs.length ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{store.eggs.map((egg, index) => <div key={egg.id} className="animate-rise" style={{ animationDelay: `${index * 80}ms` }}><EggCard egg={egg} /></div>)}</div> : <Empty title="Nenhum ovo" text="A coleção está vazia." icon={<EggIcon size={26} />} />}
-      </section>
+        </div>
+       </section>
     </main>
   </div>;
 }
@@ -353,7 +349,7 @@ function App() {
     if (!favicon) { favicon = document.createElement('link'); favicon.rel = 'icon'; document.head.appendChild(favicon); }
     favicon.href = store.settings.logoImage || logoAsset;
   }, [store.settings.siteName, store.settings.logoImage]);
-  return <WouterRouter><Switch><Route path="/admin"><ProtectedAdmin store={store} update={update} /></Route><Route path="/"><Home store={store} update={update} /></Route><Route><Home store={store} update={update} /></Route></Switch></WouterRouter>;
+  return <WouterRouter><Switch><Route path="/admin"><ProtectedAdmin store={store} update={update} /></Route><Route path="/"><Home store={store} /></Route><Route><Home store={store} /></Route></Switch></WouterRouter>;
 }
 
 export default function AppWithBoundary() {
