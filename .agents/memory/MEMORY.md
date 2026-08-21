@@ -1,1 +1,2 @@
 - [Supabase URI handling](supabase-connection.md) — Credentials with reserved URL characters may require in-memory normalization before PostgreSQL clients can parse the URI.
+- [Vercel function discovery](vercel-functions.md) — Vercel can scan nested artifact api directories; avoid TypeScript catch-all handlers when its emitter reports “Emit skipped”.

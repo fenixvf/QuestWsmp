@@ -34,6 +34,9 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api", router);
+// Replit mounts the API under /api, while Vercel Functions may pass the
+// request path with the /api prefix already removed. Supporting both forms
+// keeps the shared Express app correct in either runtime.
+app.use(["/api", "/"], router);
 
 export default app;
