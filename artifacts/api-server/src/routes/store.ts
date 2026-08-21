@@ -11,6 +11,77 @@ type StorePayload = {
   eggs: unknown;
 };
 
+const DEFAULT_STORE: StorePayload = {
+  settings: {
+    siteName: "WSMP",
+    tagline: "Um cantinho para cuidar",
+    welcomeMessage:
+      "Faça uma pausa, complete uma missão e cuide dos seus ovos.",
+    logoImage: "",
+  },
+  quests: [
+    {
+      id: "q1",
+      title: "Dar bom-dia",
+      description: "Visite um ovo antes da primeira rolagem.",
+      reward: "+12 carinho",
+      category: "Cuidado",
+      completed: false,
+      active: true,
+    },
+    {
+      id: "q2",
+      title: "Deixar um recado",
+      description: "Escreva uma frase gentil para a comunidade.",
+      reward: "+8 brilho",
+      category: "Comunidade",
+      completed: true,
+      active: true,
+    },
+    {
+      id: "q3",
+      title: "Olhar de perto",
+      description: "Visite um ovo que você ainda não viu nesta semana.",
+      reward: "+20 XP",
+      category: "Explorar",
+      completed: false,
+      active: true,
+    },
+  ],
+  eggs: [
+    {
+      id: "e1",
+      name: "Miso",
+      image: "",
+      health: 92,
+      happiness: 88,
+      maxHearts: 10,
+      status: "Radiante",
+      note: "Gosta de uma visita tranquila e de pausas ao sol.",
+    },
+    {
+      id: "e2",
+      name: "Pip",
+      image: "",
+      health: 76,
+      happiness: 94,
+      maxHearts: 8,
+      status: "Animado",
+      note: "Muito sociável hoje. Pip está procurando amigos.",
+    },
+    {
+      id: "e3",
+      name: "Clover",
+      image: "",
+      health: 84,
+      happiness: 71,
+      maxHearts: 12,
+      status: "Descansando",
+      note: "Mais quieto, mas confortável e seguro no ninho.",
+    },
+  ],
+};
+
 type ProxyInit = {
   method?: string;
   headers?: Record<string, string>;
@@ -56,8 +127,9 @@ function isStorePayload(value: unknown): value is StorePayload {
 
 router.get("/store", async (_req: Request, res: ExpressResponse) => {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    res.status(503).json({
-      message: "O Supabase não está configurado no servidor.",
+    res.json({
+      ...DEFAULT_STORE,
+      updated_at: new Date().toISOString(),
     });
     return;
   }
@@ -73,7 +145,10 @@ router.get("/store", async (_req: Request, res: ExpressResponse) => {
 
     const rows = (await response.json()) as Array<StorePayload & { updated_at: string }>;
     if (!rows.length) {
-      res.status(404).json({ message: "O quadro ainda não foi inicializado." });
+      res.json({
+        ...DEFAULT_STORE,
+        updated_at: new Date().toISOString(),
+      });
       return;
     }
 
