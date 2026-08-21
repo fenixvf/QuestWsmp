@@ -1,7 +1,7 @@
 let appPromise: Promise<any> | undefined;
 
 function loadApp(): Promise<any> {
-  appPromise ??= import("../artifacts/api-server/src/app.js").then(
+  appPromise ??= import("../artifacts/api-server/src/app.ts").then(
     (module) => module.default,
   );
   return appPromise;
