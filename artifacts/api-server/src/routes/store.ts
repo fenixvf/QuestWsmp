@@ -1,11 +1,9 @@
 import { Router } from "express";
-import { ReplitConnectors } from "@replit/connectors-sdk";
 import { requireAdmin } from "./auth.js";
 import type { Request, Response as ExpressResponse } from "express-serve-static-core";
 
 const router = Router();
 const STORE_ID = "default";
-const connectors = new ReplitConnectors();
 
 type StorePayload = {
   settings: unknown;
@@ -30,16 +28,19 @@ async function supabase(
 ): Promise<SupabaseResponse> {
   const projectUrl = process.env.SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (projectUrl && serviceRoleKey) {
-    const headers = new Headers(init.headers);
-    headers.set("apikey", serviceRoleKey);
-    headers.set("Authorization", `Bearer ${serviceRoleKey}`);
-    return (await fetch(`${projectUrl.replace(/\/$/, "")}${path}`, {
-      ...init,
-      headers,
-    })) as unknown as SupabaseResponse;
+  if (!projectUrl || !serviceRoleKey) {
+    throw new Error(
+      "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be configured.",
+    );
   }
-  return connectors.proxy("supabase", path, init) as Promise<SupabaseResponse>;
+
+  const headers = new Headers(init.headers);
+  headers.set("apikey", serviceRoleKey);
+  headers.set("Authorization", `Bearer ${serviceRoleKey}`);
+  return (await fetch(`${projectUrl.replace(/\/$/, "")}${path}`, {
+    ...init,
+    headers,
+  })) as unknown as SupabaseResponse;
 }
 
 function isStorePayload(value: unknown): value is StorePayload {
@@ -54,6 +55,13 @@ function isStorePayload(value: unknown): value is StorePayload {
 }
 
 router.get("/store", async (_req: Request, res: ExpressResponse) => {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    res.status(503).json({
+      message: "O Supabase não está configurado no servidor.",
+    });
+    return;
+  }
+
   try {
     const response = await supabase(
       `/rest/v1/wsmp_store?id=eq.${STORE_ID}&select=settings,quests,eggs,updated_at`,
@@ -81,6 +89,13 @@ router.put(
   async (req: Request, res: ExpressResponse) => {
   if (!isStorePayload(req.body)) {
     res.status(400).json({ message: "Dados inválidos para o quadro." });
+    return;
+  }
+
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    res.status(503).json({
+      message: "O Supabase não está configurado no servidor.",
+    });
     return;
   }
 
