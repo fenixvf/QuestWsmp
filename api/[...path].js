@@ -1,11 +1,4 @@
-let appPromise;
-
-function loadApp() {
-  appPromise ??= import("../artifacts/api-server/src/app.js").then(
-    (module) => module.default,
-  );
-  return appPromise;
-}
+import app from "../artifacts/api-server/src/app.ts";
 
 export default async function handler(req, res) {
   // Replit mounts the Express router at /api, while Vercel invokes this
@@ -25,6 +18,5 @@ export default async function handler(req, res) {
     }
   }
 
-  const app = await loadApp();
   return app(req, res);
 }

@@ -12,7 +12,7 @@ Mini site do WSMP para acompanhar missões diárias, saúde e felicidade dos ovo
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required secret: `SUPABASE_DATABASE_URL` — PostgreSQL connection string do Supabase (o projeto mantém `DATABASE_URL` como fallback)
+- Required API secrets: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` — used by the `/api/store` route to read/write `public.wsmp_store` through the Supabase REST API
 
 ## Stack
 
@@ -32,7 +32,7 @@ Mini site do WSMP para acompanhar missões diárias, saúde e felicidade dos ovo
 
 ## Architecture decisions
 
-- O Supabase é usado como PostgreSQL externo via `SUPABASE_DATABASE_URL`; a integração REST do Supabase não é necessária para o fluxo atual.
+- O Supabase é usado como PostgreSQL externo via the `public.wsmp_store` REST endpoint; the API server uses `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
 - O frontend usa `localStorage` para persistir as configurações do painel administrativo.
 - O administrador usa `ADMIN_USERNAME`, `ADMIN_PASSWORD` e `SESSION_SECRET`; a sessão é um cookie HTTP-only assinado e expira em oito horas.
 
@@ -46,7 +46,7 @@ Nenhuma preferência adicional registrada.
 
 ## Gotchas
 
-- Para iniciar a API, `SUPABASE_DATABASE_URL` precisa estar configurado; o frontend pode ser executado separadamente.
+- Para consultar os dados reais, `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` precisam estar configurados no ambiente de deploy; sem eles, `GET /api/store` retorna os dados iniciais locais e `PUT /api/store` retorna 503.
 - A rota `/admin` exige login; credenciais não devem ser colocadas no código ou em mensagens.
 - Depois de alterar o contrato OpenAPI, rode o codegen antes de usar os tipos atualizados.
 

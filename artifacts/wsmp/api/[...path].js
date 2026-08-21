@@ -1,11 +1,4 @@
-let appPromise;
-
-function loadApp() {
-  appPromise ??= import("../../api-server/src/app.js").then(
-    (module) => module.default,
-  );
-  return appPromise;
-}
+import app from "../../api-server/src/app.ts";
 
 export default async function handler(req, res) {
   if (req.url && !req.url.startsWith("/api")) {
@@ -23,6 +16,5 @@ export default async function handler(req, res) {
     }
   }
 
-  const app = await loadApp();
   return app(req, res);
 }
